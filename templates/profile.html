@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+  <div class="user-welcome-wrap">
+    <div class="user-big-avatar">
+      {% if user.avatar == 'admin_robot' %}🤖
+      {% elif user.avatar == 'coder2' %}🧙‍♂️
+      {% elif user.avatar == 'coder3' %}👩‍💻
+      {% elif user.avatar == 'coder4' %}🐱
+      {% elif user.avatar == 'coder5' %}🚀
+      {% else %}👨‍💻{% endif %}
+    </div>
+    <div class="user-details">
+      <h2>{{ user.username }}</h2>
+      <div class="user-level-tag">
+        <span>{{ level_info.badge_icon }}</span>
+        <span>{{ level_info.level_title }}</span>
+        <span style="opacity:0.4;">•</span>
+        <span style="color:var(--text-dim);">Member since {{ user.created_at[:10] }}</span>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.92rem; margin-top:0.3rem;">{{ user.bio }}</p>
+    </div>
+  </div>
+
+  <button type="button" class="btn btn-outline" onclick="document.getElementById('edit-profile-card').scrollIntoView({behavior: 'smooth'})">
+    ✏️ Edit Profile
+  </button>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-icon icon-xp">⚡</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ user.total_points }}</span>
+      <span class="stat-card-label">Total XP</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon icon-games">🎮</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ user.games_completed }}</span>
+      <span class="stat-card-label">Games Played</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon icon-streak">🔥</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ user.highest_streak }}</span>
+      <span class="stat-card-label">Best Streak</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon icon-rank">🎖️</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ achievements | selectattr('unlocked_at') | list | length }}</span>
+      <span class="stat-card-label">Badges Earned</span>
+    </div>
+  </div>
+</div>
+
+<!-- Category Mastery Cards -->
+<div style="margin-bottom: 2.5rem;">
+  <h3 style="font-size: 1.4rem; margin-bottom: 1rem;">Category Mastery</h3>
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+    {% for c in cat_stats %}
+      <div class="glass-card" style="padding:1.2rem;">
+        <div style="font-size:1.8rem; margin-bottom:0.4rem;">{{ c.icon }}</div>
+        <div style="font-weight:700; font-size:1rem; margin-bottom:0.2rem;">{{ c.name }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Plays: {{ c.total_plays }}</div>
+        <div style="font-size:0.82rem; color:#fbbf24; font-weight:700;">Top Score: {{ c.top_score }} pts</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- All Badges Gallery -->
+<div style="margin-bottom: 2.5rem;">
+  <h3 style="font-size: 1.4rem; margin-bottom: 1rem;">Badges &amp; Trophy Cabinet</h3>
+  <div class="achievements-grid">
+    {% for ach in achievements %}
+      <div class="badge-card {% if ach.unlocked_at %}unlocked{% else %}locked{% endif %}">
+        <div class="badge-icon">{{ ach.icon }}</div>
+        <div>
+          <div class="badge-title">{{ ach.title }}</div>
+          <div class="badge-desc">{{ ach.description }}</div>
+          {% if ach.unlocked_at %}
+            <div style="font-size:0.75rem; color:#34d399; margin-top:0.3rem;">✓ Unlocked {{ ach.unlocked_at[:10] }}</div>
+          {% else %}
+            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem;">🔒 Requires {{ ach.points_requirement }} XP</div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Edit Profile Form Card -->
+<div class="glass-card" id="edit-profile-card" style="margin-bottom: 2.5rem;">
+  <h3 style="font-size: 1.3rem; margin-bottom: 1.2rem;">Customize Profile</h3>
+  
+  <form method="POST" action="{{ url_for('update_profile') }}">
+    <div class="form-group">
+      <label class="form-label">Select Your Character Avatar</label>
+      <input type="hidden" name="avatar" id="selected-avatar-input" value="{{ user.avatar }}">
+      <div class="avatar-grid">
+        <div class="avatar-choice {% if user.avatar == 'coder1' %}selected{% endif %}" data-avatar="coder1" title="Novice Coder">👨‍💻</div>
+        <div class="avatar-choice {% if user.avatar == 'coder2' %}selected{% endif %}" data-avatar="coder2" title="Code Wizard">🧙‍♂️</div>
+        <div class="avatar-choice {% if user.avatar == 'coder3' %}selected{% endif %}" data-avatar="coder3" title="Tech Sorceress">👩‍💻</div>
+        <div class="avatar-choice {% if user.avatar == 'coder4' %}selected{% endif %}" data-avatar="coder4" title="Cyber Cat">🐱</div>
+        <div class="avatar-choice {% if user.avatar == 'coder5' %}selected{% endif %}" data-avatar="coder5" title="Rocket Pilot">🚀</div>
+        <div class="avatar-choice {% if user.avatar == 'admin_robot' %}selected{% endif %}" data-avatar="admin_robot" title="Robo Helper">🤖</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="bio">Profile Bio / Motto (Max 150 chars)</label>
+      <textarea id="bio" name="bio" class="form-input" rows="2" maxlength="150" placeholder="Tell other learners about your coding goals...">{{ user.bio }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes 💾</button>
+  </form>
+</div>
+
+<!-- Full Match History -->
+<div class="glass-card">
+  <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Complete Match Log</h3>
+  {% if sessions %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Game Mode</th>
+            <th>Tier</th>
+            <th>Score</th>
+            <th>Questions</th>
+            <th>Accuracy</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sessions %}
+            <tr>
+              <td style="color:var(--text-dim); font-size:0.85rem;">{{ s.completed_at }}</td>
+              <td>{{ s.category_icon }} <strong>{{ s.category_name }}</strong></td>
+              <td><span class="difficulty-badge diff-{{ s.difficulty }}">{{ s.difficulty|capitalize }}</span></td>
+              <td style="color:#fbbf24; font-weight:700;">+{{ s.score_earned }} XP</td>
+              <td>{{ s.questions_count }} Qs</td>
+              <td>{{ ((s.correct_count / s.questions_count) * 100)|round|int if s.questions_count > 0 else 0 }}%</td>
+              <td>{{ s.time_taken_seconds }}s</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+      No games recorded yet.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

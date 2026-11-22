@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="glass-card">
+    <div class="auth-header">
+      <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🌟</div>
+      <h1 class="auth-title">Begin Your Quest</h1>
+      <p class="auth-desc">Create your apprentice account to track XP, level up, and win badges.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('register') }}">
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          class="form-input" 
+          placeholder="e.g. CodeNinja42" 
+          value="{{ username or '' }}" 
+          required 
+          minlength="3" 
+          maxlength="25"
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="form-input" 
+          placeholder="student@example.com" 
+          value="{{ email or '' }}" 
+          required 
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password (minimum 6 characters)</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-input" 
+          placeholder="••••••••" 
+          required 
+          minlength="6"
+          autocomplete="new-password"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirm_password">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirm_password" 
+          name="confirm_password" 
+          class="form-input" 
+          placeholder="••••••••" 
+          required 
+          minlength="6"
+          autocomplete="new-password"
+        >
+      </div>
+
+      <!-- Avatar Selector -->
+      <div class="form-group">
+        <label class="form-label">Choose Your Avatar</label>
+        <input type="hidden" name="avatar" id="selected-avatar-input" value="coder1">
+        <div class="avatar-grid">
+          <div class="avatar-choice selected" data-avatar="coder1" title="Novice Coder">👨‍💻</div>
+          <div class="avatar-choice" data-avatar="coder2" title="Code Wizard">🧙‍♂️</div>
+          <div class="avatar-choice" data-avatar="coder3" title="Tech Sorceress">👩‍💻</div>
+          <div class="avatar-choice" data-avatar="coder4" title="Cyber Cat">🐱</div>
+          <div class="avatar-choice" data-avatar="coder5" title="Rocket Pilot">🚀</div>
+          <div class="avatar-choice" data-avatar="admin_robot" title="Robo Helper">🤖</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1.05rem; margin-top: 1rem;">
+        Start Playing Free 🎮
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.92rem; color: var(--text-muted);">
+      Already have an account? 
+      <a href="{{ url_for('login') }}" style="color: var(--cyan); font-weight: 600;">Log in here →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

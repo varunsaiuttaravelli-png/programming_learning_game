@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <span class="section-tag">Hall of Legends</span>
+  <h1 class="section-title">Global Coding Leaderboard</h1>
+  <p class="section-desc">Compete with fellow programmers, earn points through accuracy, and climb to the #1 spot!</p>
+</div>
+
+{% if players and players|length >= 3 %}
+  <!-- Top 3 Podium Display -->
+  <div class="leaderboard-podium">
+    <!-- Rank 2: Silver -->
+    {% set p2 = players[1] %}
+    <div class="podium-slot rank-2">
+      <div class="podium-avatar">
+        <span class="podium-crown">🥈</span>
+        {% if p2.avatar == 'admin_robot' %}🤖
+        {% elif p2.avatar == 'coder2' %}🧙‍♂️
+        {% elif p2.avatar == 'coder3' %}👩‍💻
+        {% elif p2.avatar == 'coder4' %}🐱
+        {% elif p2.avatar == 'coder5' %}🚀
+        {% else %}👨‍💻{% endif %}
+      </div>
+      <div class="podium-name">{{ p2.username }}</div>
+      <div class="podium-score">⚡ {{ p2.total_points }} XP</div>
+      <div style="font-size:0.75rem; color:var(--text-dim);">{{ p2.games_completed }} games • {{ p2.badge_count }} badges</div>
+      <div class="podium-base">#2</div>
+    </div>
+
+    <!-- Rank 1: Gold Champion -->
+    {% set p1 = players[0] %}
+    <div class="podium-slot rank-1">
+      <div class="podium-avatar">
+        <span class="podium-crown">👑</span>
+        {% if p1.avatar == 'admin_robot' %}🤖
+        {% elif p1.avatar == 'coder2' %}🧙‍♂️
+        {% elif p1.avatar == 'coder3' %}👩‍💻
+        {% elif p1.avatar == 'coder4' %}🐱
+        {% elif p1.avatar == 'coder5' %}🚀
+        {% else %}👨‍💻{% endif %}
+      </div>
+      <div class="podium-name">{{ p1.username }}</div>
+      <div class="podium-score">⚡ {{ p1.total_points }} XP</div>
+      <div style="font-size:0.75rem; color:var(--text-dim);">{{ p1.games_completed }} games • {{ p1.badge_count }} badges</div>
+      <div class="podium-base">#1</div>
+    </div>
+
+    <!-- Rank 3: Bronze -->
+    {% set p3 = players[2] %}
+    <div class="podium-slot rank-3">
+      <div class="podium-avatar">
+        <span class="podium-crown">🥉</span>
+        {% if p3.avatar == 'admin_robot' %}🤖
+        {% elif p3.avatar == 'coder2' %}🧙‍♂️
+        {% elif p3.avatar == 'coder3' %}👩‍💻
+        {% elif p3.avatar == 'coder4' %}🐱
+        {% elif p3.avatar == 'coder5' %}🚀
+        {% else %}👨‍💻{% endif %}
+      </div>
+      <div class="podium-name">{{ p3.username }}</div>
+      <div class="podium-score">⚡ {{ p3.total_points }} XP</div>
+      <div style="font-size:0.75rem; color:var(--text-dim);">{{ p3.games_completed }} games • {{ p3.badge_count }} badges</div>
+      <div class="podium-base">#3</div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Full Leaderboard Table -->
+<div class="glass-card" style="padding: 1.5rem;">
+  <div class="table-responsive">
+    <table class="lb-table">
+      <thead>
+        <tr>
+          <th style="width: 80px;">Rank</th>
+          <th>Player</th>
+          <th>Level Tier</th>
+          <th>Badges</th>
+          <th>Games Played</th>
+          <th>Highest Streak</th>
+          <th style="text-align: right;">Total XP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in players %}
+          <tr class="lb-row {% if current_user and current_user.id == p.id %}current-user{% endif %}">
+            <td style="color: {% if p.rank == 1 %}#facc15{% elif p.rank == 2 %}#cbd5e1{% elif p.rank == 3 %}#d97706{% else %}var(--text-dim){% endif %};">
+              #{{ p.rank }}
+            </td>
+            <td>
+              <div class="lb-player">
+                <div class="lb-avatar">
+                  {% if p.avatar == 'admin_robot' %}🤖
+                  {% elif p.avatar == 'coder2' %}🧙‍♂️
+                  {% elif p.avatar == 'coder3' %}👩‍💻
+                  {% elif p.avatar == 'coder4' %}🐱
+                  {% elif p.avatar == 'coder5' %}🚀
+                  {% else %}👨‍💻{% endif %}
+                </div>
+                <div>
+                  <div style="font-weight:700; font-size:1rem; display:flex; align-items:center; gap:0.4rem;">
+                    {{ p.username }}
+                    {% if current_user and current_user.id == p.id %}
+                      <span style="font-size:0.7rem; background:var(--primary); color:#fff; padding:0.15rem 0.45rem; border-radius:var(--radius-full);">YOU</span>
+                    {% endif %}
+                  </div>
+                  <div style="font-size:0.8rem; color:var(--text-muted);">{{ p.bio or 'Code explorer' }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span style="font-size:0.85rem; font-weight:600; color:var(--cyan);">
+                {{ p.badge_icon }} {{ p.level_title }}
+              </span>
+            </td>
+            <td>
+              <span style="font-weight:700; color:#fbbf24;">🎖️ {{ p.badge_count }}</span>
+            </td>
+            <td>{{ p.games_completed }}</td>
+            <td style="color:#f87171; font-weight:700;">🔥 {{ p.highest_streak }}</td>
+            <td style="text-align: right;">
+              <span style="font-family:var(--font-heading); font-size:1.25rem; font-weight:800; color:#fbbf24;">
+                {{ p.total_points }}
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

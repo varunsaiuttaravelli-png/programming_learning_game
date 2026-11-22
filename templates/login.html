@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="glass-card">
+    <div class="auth-header">
+      <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🎮</div>
+      <h1 class="auth-title">Welcome Back, Coder!</h1>
+      <p class="auth-desc">Log in to resume your challenges and climb the ranks.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label class="form-label" for="login_id">Username or Email</label>
+        <input 
+          type="text" 
+          id="login_id" 
+          name="login_id" 
+          class="form-input" 
+          placeholder="e.g. pycoder or student@codequest.dev" 
+          value="{{ login_id or '' }}" 
+          required 
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-input" 
+          placeholder="••••••••" 
+          required 
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1.05rem;">
+        Log In to CodeQuest 🚀
+      </button>
+    </form>
+
+    <!-- Quick Demo Accounts Helper -->
+    <div class="demo-credentials-box">
+      <div style="font-weight: 700; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+        <span>🔑</span> Demo Accounts (One-Click or Manual Test):
+      </div>
+      <div>
+        <strong>Student:</strong> <code>pycoder</code> / <code>Student123!</code>
+      </div>
+      <div>
+        <strong>Admin:</strong> <code>admin</code> / <code>AdminPass123!</code>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.92rem; color: var(--text-muted);">
+      Don't have an account yet? 
+      <a href="{{ url_for('register') }}" style="color: var(--cyan); font-weight: 600;">Sign up free →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

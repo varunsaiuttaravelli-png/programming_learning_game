@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} ({{ difficulty|capitalize }}){% endblock %}
+
+{% block content %}
+<div class="arena-container" data-game-arena data-category="{{ category.slug }}" data-difficulty="{{ difficulty }}">
+
+  {% if current_user %}
+  <div class="arena-stats-bar" style="justify-content:flex-end; margin-bottom:0.8rem;">
+    <div style="display:flex; align-items:center; gap:0.35rem; color:#fbbf24;" title="Your total account XP">
+      <span>🏅</span>
+      <span>Total XP: <strong id="arena-total-points">{{ current_user.total_points }}</strong></span>
+    </div>
+  </div>
+  {% else %}
+  <div class="glass-card" style="padding:0.9rem 1.2rem; margin-bottom:0.8rem; color:var(--text-muted);">
+    Playing as a guest? <a href="{{ url_for('login', next=request.path) }}" style="color:var(--cyan); font-weight:600;">Log in</a> to earn XP and unlock higher levels.
+  </div>
+  {% endif %}
+
+  <!-- Arena Top Bar -->
+  <div class="arena-topbar">
+    <div class="arena-game-info">
+      <div class="arena-icon">{{ category.icon }}</div>
+      <div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <h1 class="arena-title">{{ category.name }}</h1>
+          <span class="difficulty-badge diff-{{ difficulty }}">{{ difficulty|capitalize }}</span>
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">
+          Question <span id="q-current-index">1</span> of <span id="q-total-count">{{ q_count }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Arena Stats Bar -->
+    <div class="arena-stats-bar">
+      <!-- Streak Pill -->
+      <div style="display:flex; align-items:center; gap:0.35rem; color:#f87171;" title="Winning Streak">
+        <span>🔥</span>
+        <span id="arena-streak-val">0</span>
+      </div>
+
+      <!-- Live Points Pill -->
+      <div style="display:flex; align-items:center; gap:0.35rem; color:#fbbf24;" title="Session XP">
+        <span>⚡</span>
+        <span id="arena-score-val">0</span>
+      </div>
+
+      <!-- Timer Pill -->
+      <div class="timer-pill" id="timer-pill">
+        <span>⏱️</span>
+        <span id="timer-val">45s</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Countdown Progress Bar -->
+  <div class="timer-bar-wrap">
+    <div class="timer-bar-fill" id="timer-bar-fill" style="width: 100%;"></div>
+  </div>
+
+  <!-- Main Question Card -->
+  <div class="question-card" id="question-card">
+    <div class="q-step-badge" id="q-step-title">Loading Question...</div>
+    <h2 class="q-title" id="q-title">Preparing your challenge...</h2>
+    <p class="q-desc" id="q-desc"></p>
+
+    <!-- Code Snippet Box (shown when code exists) -->
+    <div id="q-code-wrapper" style="display:none;">
+      <div class="code-window" style="margin-bottom: 1.8rem;">
+        <div class="window-header">
+          <div class="window-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <span class="window-title">snippet.py</span>
+          <span style="color:var(--text-dim); font-size:0.75rem;">Python 3</span>
+        </div>
+        <pre class="q-code-snippet" style="margin:0; border:none; border-radius:0;"><code id="q-code-content"></code></pre>
+      </div>
+    </div>
+
+    <!-- Interaction Target Area (Dynamic options, Parsons puzzle, blanks) -->
+    <div id="interaction-area">
+      <!-- Injected dynamically by game.js -->
+    </div>
+
+    <!-- Feedback & Detailed Explanation Box -->
+    <div class="feedback-box" id="feedback-box">
+      <div class="feedback-title" id="feedback-title"></div>
+      <div class="feedback-explanation" id="feedback-desc"></div>
+    </div>
+  </div>
+
+  <!-- Arena Bottom Controls -->
+  <div class="arena-controls">
+    <a href="{{ url_for('games_lobby') }}" class="btn btn-outline btn-sm" onclick="return confirm('Are you sure you want to leave this game session?');">
+      ✕ Leave Game
+    </a>
+
+    <div style="display:flex; gap:0.8rem;">
+      <button type="button" id="submit-answer-btn" class="btn btn-primary" disabled>
+        Submit Answer 🚀
+      </button>
+      <button type="button" id="next-question-btn" class="btn btn-cyan" style="display:none;">
+        Next Question →
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

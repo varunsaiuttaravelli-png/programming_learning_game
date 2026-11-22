@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Master Python Through Interactive Games{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div>
+    <div class="hero-badge">
+      <span>✨ Level up your coding skills</span>
+      <span style="opacity:0.4;">|</span>
+      <span>Beginner to Pro</span>
+    </div>
+
+    <h1 class="hero-title">
+      Learn Programming <br>
+      Through <span class="text-gradient">Epic Games</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Say goodbye to dry textbooks. Master Python fundamentals, predict code output, spot sneaky bugs, reorder scrambled algorithms, and earn real XP and badges!
+    </p>
+
+    <div class="hero-actions">
+      {% if current_user %}
+        <a href="{{ url_for('games_lobby') }}" class="btn btn-primary btn-lg">
+          <span>🎮</span> Start Playing Now
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-lg">
+          <span>📊</span> View Dashboard
+        </a>
+      {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+          <span>🚀</span> Start Learning Free
+        </a>
+        <a href="{{ url_for('games_lobby') }}" class="btn btn-cyan btn-lg">
+          <span>🎮</span> Explore Games
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-val text-cyan">6</span>
+        <span class="stat-lbl">Game Modes</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val text-emerald">{{ total_questions }}</span>
+        <span class="stat-lbl">Challenges</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val text-amber">{{ total_users }}</span>
+        <span class="stat-lbl">Active Coders</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Hero Code Window -->
+  <div class="hero-preview">
+    <div class="code-window">
+      <div class="window-header">
+        <div class="window-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="window-title">game_loop.py</span>
+        <span style="color:var(--text-dim); font-size:0.75rem;">Python 3.12</span>
+      </div>
+
+      <div class="window-body">
+<span class="code-comment"># Welcome to CodeQuest</span>
+<span class="code-keyword">class</span> <span class="code-func">Player</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(self, name):
+        self.name = name
+        self.xp = <span class="code-num">0</span>
+        self.level = <span class="code-str">"Novice"</span>
+
+    <span class="code-keyword">def</span> <span class="code-func">solve_challenge</span>(self, points):
+        self.xp += points
+        <span class="code-keyword">if</span> self.xp >= <span class="code-num">150</span>:
+            self.level = <span class="code-str">"Code Warrior ⚔️"</span>
+        <span class="code-keyword">return</span> <span class="code-str">f"Level Up! Current XP: {self.xp}"</span>
+
+hero = <span class="code-func">Player</span>(<span class="code-str">"{{ current_user.username if current_user else 'Student' }}"</span>)
+<span class="code-func">print</span>(hero.solve_challenge(<span class="code-num">200</span>))
+<span class="code-comment"># &gt;&gt;&gt; Level Up! Current XP: 200</span>
+      </div>
+    </div>
+
+    <!-- Floating Achievement Card -->
+    <div class="glass-card" style="position:absolute; bottom:-25px; right:-15px; padding:0.9rem 1.4rem; display:flex; align-items:center; gap:0.9rem; box-shadow:var(--shadow-lg); border-color:rgba(245,158,11,0.4); background:rgba(19,24,46,0.95);">
+      <div style="font-size:2rem;">🔥</div>
+      <div>
+        <div style="font-weight:700; font-size:0.75rem; color:#fbbf24; text-transform:uppercase;">Winning Streak</div>
+        <div style="font-weight:800; font-size:1.1rem; color:#fff;">5 Questions in a Row!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 Game Modes Showcase -->
+<section style="margin: 5rem 0 3rem;">
+  <div class="section-header">
+    <span class="section-tag">Interactive Games</span>
+    <h2 class="section-title">6 Ways to Sharpen Your Code Mind</h2>
+    <p class="section-desc">Each game focuses on a vital programming discipline, from reading syntax to debugging and algorithmic sequencing.</p>
+  </div>
+
+  <div class="game-grid">
+    {% for cat in categories %}
+      <div class="game-card" style="--card-color: {{ cat.color }};">
+        <div class="game-card-icon">{{ cat.icon }}</div>
+        <h3 class="game-card-title">{{ cat.name }}</h3>
+        <p class="game-card-desc">{{ cat.description }}</p>
+
+        <div class="game-card-tiers">
+          <a href="{{ url_for('play_game', category_slug=cat.slug, difficulty='easy') }}" class="tier-btn">
+            <span class="difficulty-badge diff-easy">Easy</span>
+          </a>
+          <a href="{{ url_for('play_game', category_slug=cat.slug, difficulty='medium') }}" class="tier-btn {% if current_user and not level_info.medium_unlocked %}locked{% endif %}">
+            <span class="difficulty-badge diff-medium">Medium</span>
+            {% if current_user and not level_info.medium_unlocked %}🔒{% endif %}
+          </a>
+          <a href="{{ url_for('play_game', category_slug=cat.slug, difficulty='hard') }}" class="tier-btn {% if current_user and not level_info.hard_unlocked %}locked{% endif %}">
+            <span class="difficulty-badge diff-hard">Hard</span>
+            {% if current_user and not level_info.hard_unlocked %}🔒{% endif %}
+          </a>
+        </div>
+
+        <a href="{{ url_for('play_game', category_slug=cat.slug, difficulty='easy') }}" class="btn btn-outline" style="margin-top:auto;">
+          Play {{ cat.name }} →
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Difficulty Tiers Breakdown -->
+<section style="margin: 5rem 0;">
+  <div class="section-header">
+    <span class="section-tag">Structured Progression</span>
+    <h2 class="section-title">From First Steps to Algorithmic Mastery</h2>
+    <p class="section-desc">Earn points to unlock higher tiers and test your problem-solving against real programming challenges.</p>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.8rem;">
+    <!-- Easy Tier -->
+    <div class="glass-card" style="border-top: 4px solid var(--emerald);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <span class="difficulty-badge diff-easy">Easy Tier</span>
+        <span style="font-weight:700; color:var(--emerald);">0 XP Required</span>
+      </div>
+      <h3 style="font-size:1.4rem; margin-bottom:0.8rem;">Variables &amp; Basic Syntax</h3>
+      <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin-bottom:1.2rem;">
+        Master Python data types (strings, ints, floats, booleans), basic arithmetic operators, input/output statements, and simple variable manipulations.
+      </p>
+      <div style="font-size:0.85rem; color:#6ee7b7; font-weight:600;">
+        ✓ Always unlocked for all apprentices
+      </div>
+    </div>
+
+    <!-- Medium Tier -->
+    <div class="glass-card" style="border-top: 4px solid var(--amber);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <span class="difficulty-badge diff-medium">Medium Tier</span>
+        <span style="font-weight:700; color:var(--amber);">150 XP to Unlock</span>
+      </div>
+      <h3 style="font-size:1.4rem; margin-bottom:0.8rem;">Logic, Loops &amp; Functions</h3>
+      <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin-bottom:1.2rem;">
+        Dive into boolean conditions, while and for loops, list manipulation, dictionary mappings, exception handling, and custom function definitions.
+      </p>
+      <div style="font-size:0.85rem; color:#fde047; font-weight:600;">
+        {% if current_user and level_info.medium_unlocked %}
+          ✅ Unlocked on your account!
+        {% else %}
+          🔒 Reach 150 points to unlock
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Hard Tier -->
+    <div class="glass-card" style="border-top: 4px solid var(--rose);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <span class="difficulty-badge diff-hard">Hard Tier</span>
+        <span style="font-weight:700; color:var(--rose);">400 XP to Unlock</span>
+      </div>
+      <h3 style="font-size:1.4rem; margin-bottom:0.8rem;">Algorithms &amp; Deep Debugging</h3>
+      <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin-bottom:1.2rem;">
+        Conquer binary search, recursion, scoping rules, mutable defaults, complex sorting puzzles, and intricate bug investigations.
+      </p>
+      <div style="font-size:0.85rem; color:#fca5a5; font-weight:600;">
+        {% if current_user and level_info.hard_unlocked %}
+          ✅ Unlocked on your account!
+        {% else %}
+          🔒 Reach 400 points to unlock
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Leaderboard Preview -->
+{% if top_players %}
+<section style="margin: 4rem 0;">
+  <div class="glass-card" style="padding: 2.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.8rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <span class="section-tag">Hall of Fame</span>
+        <h3 style="font-size:1.8rem;">Current Top Coders</h3>
+      </div>
+      <a href="{{ url_for('leaderboard') }}" class="btn btn-outline">
+        View Full Leaderboard 🏆
+      </a>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.2rem;">
+      {% for player in top_players %}
+        <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1.2rem; display:flex; align-items:center; gap:1rem;">
+          <div style="font-size:1.6rem; font-weight:800; font-family:var(--font-heading); color:{% if loop.index == 1 %}#facc15{% elif loop.index == 2 %}#cbd5e1{% else %}#d97706{% endif %};">
+            #{{ loop.index }}
+          </div>
+          <div style="width:46px; height:46px; border-radius:50%; background:var(--grad-primary); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+            {% if player.avatar == 'admin_robot' %}🤖
+            {% elif player.avatar == 'coder2' %}🧙‍♂️
+            {% elif player.avatar == 'coder3' %}👩‍💻
+            {% elif player.avatar == 'coder4' %}🐱
+            {% elif player.avatar == 'coder5' %}🚀
+            {% else %}👨‍💻{% endif %}
+          </div>
+          <div>
+            <div style="font-weight:700; font-size:1.05rem;">{{ player.username }}</div>
+            <div style="font-size:0.85rem; color:#fbbf24; font-weight:600;">⚡ {{ player.total_points }} XP • {{ player.games_completed }} games</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Bottom Call to Action -->
+<section style="text-align:center; padding: 4rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-glow); margin-bottom: 2rem;">
+  <h2 style="font-size:2.5rem; margin-bottom:1rem;">Ready to Begin Your Coding Quest?</h2>
+  <p style="color:var(--text-muted); max-width:600px; margin:0 auto 2rem; font-size:1.05rem;">
+    Join students and beginners learning Python by playing interactive challenges. Zero setup required—jump right into the browser!
+  </p>
+  {% if current_user %}
+    <a href="{{ url_for('games_lobby') }}" class="btn btn-primary btn-lg">Pick a Game &amp; Play 🎮</a>
+  {% else %}
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Create Free Account 🚀</a>
+  {% endif %}
+</section>
+{% endblock %}

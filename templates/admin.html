@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+  <div>
+    <span class="section-tag">System Administration</span>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.3rem;">Game Management Console</h1>
+    <p style="color:var(--text-muted); font-size:0.95rem;">Manage programming challenges, inspect learner accounts, and track metrics.</p>
+  </div>
+
+  <button type="button" class="btn btn-primary" onclick="openAddModal()">
+    <span>➕</span> Add New Challenge
+  </button>
+</div>
+
+<!-- Admin Metrics Overview -->
+<div class="stats-grid" style="margin-bottom: 2rem;">
+  <div class="stat-card">
+    <div class="stat-card-icon icon-xp">👥</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ stats.total_users }}</span>
+      <span class="stat-card-label">Registered Learners</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon icon-games">📚</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ stats.total_questions }}</span>
+      <span class="stat-card-label">Total Questions</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon icon-streak">🎮</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ stats.total_games }}</span>
+      <span class="stat-card-label">Sessions Played</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon icon-rank">⚡</div>
+    <div class="stat-card-info">
+      <span class="stat-card-num">{{ stats.total_xp }}</span>
+      <span class="stat-card-label">Total XP Distributed</span>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Tabs (Questions / Users) -->
+<div class="admin-tabs">
+  <button type="button" class="admin-tab active" id="tab-questions-btn" onclick="switchAdminTab('questions')">
+    Questions Repository ({{ questions|length }})
+  </button>
+  <button type="button" class="admin-tab" id="tab-users-btn" onclick="switchAdminTab('users')">
+    User Accounts ({{ users|length }})
+  </button>
+</div>
+
+<!-- Questions Section -->
+<div id="section-questions" class="glass-card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:1rem;">
+    <h3 style="font-size:1.3rem;">Questions Repository</h3>
+
+    <!-- Filter selectors -->
+    <div style="display:flex; gap:0.6rem;">
+      <select id="filter-category" class="form-input" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onchange="filterQuestions()">
+        <option value="all">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.slug }}">{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select id="filter-difficulty" class="form-input" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onchange="filterQuestions()">
+        <option value="all">All Difficulties</option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table" id="questions-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Mode</th>
+          <th>Tier</th>
+          <th>Challenge Title</th>
+          <th>XP / Time</th>
+          <th>Correct Solution</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for q in questions %}
+          <tr class="q-row" data-category="{{ q.category_slug }}" data-difficulty="{{ q.difficulty }}">
+            <td style="color:var(--text-dim); font-weight:700;">#{{ q.id }}</td>
+            <td>
+              <span>{{ q.category_icon }}</span> {{ q.category_name }}
+            </td>
+            <td>
+              <span class="difficulty-badge diff-{{ q.difficulty }}">{{ q.difficulty|capitalize }}</span>
+            </td>
+            <td>
+              <strong style="color:#fff;">{{ q.title }}</strong>
+              {% if q.code_snippet %}
+                <div style="font-family:var(--font-code); font-size:0.75rem; color:var(--cyan); margin-top:0.2rem;">Has Code Snippet</div>
+              {% endif %}
+            </td>
+            <td>
+              <span style="color:#fbbf24; font-weight:700;">{{ q.points }} XP</span> • {{ q.time_limit }}s
+            </td>
+            <td style="max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-code); font-size:0.85rem;">
+              {{ q.correct_answer }}
+            </td>
+            <td style="text-align:right; white-space:nowrap;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="openEditModal({{ q.id }})">✏️ Edit</button>
+              <form method="POST" action="{{ url_for('admin_delete_question', q_id=q.id) }}" style="display:inline;" onsubmit="return confirm('Delete question #{{ q.id }}? This cannot be undone.');">
+                <button type="submit" class="btn btn-outline btn-sm" style="color:var(--rose); border-color:rgba(239,68,68,0.3);">🗑️</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Users Section (Hidden initially) -->
+<div id="section-users" class="glass-card" style="display:none;">
+  <h3 style="font-size:1.3rem; margin-bottom:1.2rem;">Registered Learners</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Email</th>
+          <th>Total XP</th>
+          <th>Games Played</th>
+          <th>Role</th>
+          <th>Registered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td style="color:var(--text-dim); font-weight:700;">#{{ u.id }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <span style="font-size:1.2rem;">
+                  {% if u.avatar == 'admin_robot' %}🤖
+                  {% elif u.avatar == 'coder2' %}🧙‍♂️
+                  {% elif u.avatar == 'coder3' %}👩‍💻
+                  {% elif u.avatar == 'coder4' %}🐱
+                  {% elif u.avatar == 'coder5' %}🚀
+                  {% else %}👨‍💻{% endif %}
+                </span>
+                <strong>{{ u.username }}</strong>
+              </div>
+            </td>
+            <td style="color:var(--text-muted);">{{ u.email }}</td>
+            <td style="color:#fbbf24; font-weight:700;">⚡ {{ u.total_points }} XP</td>
+            <td>{{ u.games_completed }} games</td>
+            <td>
+              {% if u.is_admin %}
+                <span style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:0.2rem 0.5rem; border-radius:var(--radius-full); font-size:0.75rem; font-weight:700;">ADMIN</span>
+              {% else %}
+                <span style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:0.2rem 0.5rem; border-radius:var(--radius-full); font-size:0.75rem; font-weight:700;">STUDENT</span>
+              {% endif %}
+            </td>
+            <td style="color:var(--text-dim); font-size:0.85rem;">{{ u.created_at[:10] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Question Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal-content">
+    <button type="button" class="modal-close-btn" onclick="closeAddModal()">✕</button>
+    <h2 style="font-size:1.6rem; margin-bottom:1.2rem;">➕ Create New Challenge</h2>
+
+    <form method="POST" action="{{ url_for('admin_add_question') }}">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Game Category</label>
+          <select name="category_slug" class="form-input" id="modal-cat-select" onchange="adjustFormInputs()">
+            {% for cat in categories %}
+              <option value="{{ cat.slug }}">{{ cat.icon }} {{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Difficulty Tier</label>
+          <select name="difficulty" class="form-input">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Challenge Title</label>
+        <input type="text" name="title" class="form-input" placeholder="e.g. Slicing Negative Indices" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Question Prompt / Instructions</label>
+        <textarea name="description" class="form-input" rows="2" placeholder="Explain what the learner must do..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Code Snippet (Optional)</label>
+        <textarea name="code_snippet" class="form-input" rows="4" style="font-family:var(--font-code);" placeholder="def example():\n    pass"></textarea>
+      </div>
+
+      <input type="hidden" name="q_type" id="q-type-hidden" value="mcq">
+
+      <!-- Options / Lines Box -->
+      <div class="form-group" id="options-input-group">
+        <label class="form-label" id="options-label">Multiple Choice Options (One per line)</label>
+        <textarea name="options" id="options-textarea" class="form-input" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3&#10;Option 4"></textarea>
+      </div>
+
+      <div class="form-group" id="parsons-input-group" style="display:none;">
+        <label class="form-label">Code Lines in Correct Order (One per line)</label>
+        <textarea name="parsons_lines" class="form-input" rows="4" style="font-family:var(--font-code);" placeholder="Line 1&#10;Line 2&#10;Line 3"></textarea>
+      </div>
+
+      <div class="form-group" id="correct-answer-group">
+        <label class="form-label">Exact Correct Answer</label>
+        <input type="text" name="correct_answer" class="form-input" placeholder="Must match one of the options exactly">
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Points (XP)</label>
+          <input type="number" name="points" class="form-input" value="20" min="5" max="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Limit (Seconds)</label>
+          <input type="number" name="time_limit" class="form-input" value="45" min="10" max="180">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Explanation (Shown after answering)</label>
+        <textarea name="explanation" class="form-input" rows="2" placeholder="Clear explanation of why this answer is correct..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:0.85rem;">Save Challenge to Database 💾</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Question Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-content">
+    <button type="button" class="modal-close-btn" onclick="closeEditModal()">✕</button>
+    <h2 style="font-size:1.6rem; margin-bottom:1.2rem;">✏️ Edit Challenge #<span id="edit-q-id-title"></span></h2>
+
+    <form method="POST" id="edit-q-form" action="">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Game Category</label>
+          <select name="category_slug" class="form-input" id="edit-category">
+            {% for cat in categories %}
+              <option value="{{ cat.slug }}">{{ cat.icon }} {{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Difficulty Tier</label>
+          <select name="difficulty" class="form-input" id="edit-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Challenge Title</label>
+        <input type="text" name="title" id="edit-title" class="form-input" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Question Prompt</label>
+        <textarea name="description" id="edit-description" class="form-input" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Code Snippet</label>
+        <textarea name="code_snippet" id="edit-code-snippet" class="form-input" rows="4" style="font-family:var(--font-code);"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Correct Solution</label>
+        <input type="text" name="correct_answer" id="edit-correct-answer" class="form-input" required>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Points (XP)</label>
+          <input type="number" name="points" id="edit-points" class="form-input" min="5" max="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Limit (Seconds)</label>
+          <input type="number" name="time_limit" id="edit-time-limit" class="form-input" min="10" max="180">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Explanation</label>
+        <textarea name="explanation" id="edit-explanation" class="form-input" rows="2"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:0.85rem;">Update Challenge 💾</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchAdminTab(tab) {
+  const qSec = document.getElementById('section-questions');
+  const uSec = document.getElementById('section-users');
+  const qBtn = document.getElementById('tab-questions-btn');
+  const uBtn = document.getElementById('tab-users-btn');
+
+  if (tab === 'questions') {
+    qSec.style.display = 'block';
+    uSec.style.display = 'none';
+    qBtn.classList.add('active');
+    uBtn.classList.remove('active');
+  } else {
+    qSec.style.display = 'none';
+    uSec.style.display = 'block';
+    qBtn.classList.remove('active');
+    uBtn.classList.add('active');
+  }
+}
+
+function filterQuestions() {
+  const cat = document.getElementById('filter-category').value;
+  const diff = document.getElementById('filter-difficulty').value;
+
+  document.querySelectorAll('.q-row').forEach(row => {
+    const rowCat = row.dataset.category;
+    const rowDiff = row.dataset.difficulty;
+
+    const catMatch = (cat === 'all' || rowCat === cat);
+    const diffMatch = (diff === 'all' || rowDiff === diff);
+
+    row.style.display = (catMatch && diffMatch) ? '' : 'none';
+  });
+}
+
+function adjustFormInputs() {
+  const cat = document.getElementById('modal-cat-select').value;
+  const qType = document.getElementById('q-type-hidden');
+  const optGroup = document.getElementById('options-input-group');
+  const parsonsGroup = document.getElementById('parsons-input-group');
+  const correctGroup = document.getElementById('correct-answer-group');
+
+  if (cat === 'arrange_code') {
+    qType.value = 'parsons';
+    optGroup.style.display = 'none';
+    parsonsGroup.style.display = 'block';
+    correctGroup.style.display = 'none';
+  } else if (cat === 'fill_blanks') {
+    qType.value = 'fill_blank';
+    optGroup.style.display = 'block';
+    parsonsGroup.style.display = 'none';
+    correctGroup.style.display = 'block';
+    document.getElementById('options-label').textContent = 'Option Pairs (e.g. def, return)';
+  } else {
+    qType.value = 'mcq';
+    optGroup.style.display = 'block';
+    parsonsGroup.style.display = 'none';
+    correctGroup.style.display = 'block';
+    document.getElementById('options-label').textContent = 'Multiple Choice Options (One per line)';
+  }
+}
+
+function openAddModal() {
+  document.getElementById('add-modal').classList.add('active');
+  adjustFormInputs();
+}
+
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('active');
+}
+
+async function openEditModal(qId) {
+  try {
+    const res = await fetch(`/admin/question/${qId}/json`);
+    const q = await res.json();
+
+    document.getElementById('edit-q-id-title').textContent = q.id;
+    document.getElementById('edit-q-form').action = `/admin/question/edit/${q.id}`;
+
+    document.getElementById('edit-category').value = q.category_slug;
+    document.getElementById('edit-difficulty').value = q.difficulty;
+    document.getElementById('edit-title').value = q.title;
+    document.getElementById('edit-description').value = q.description || '';
+    document.getElementById('edit-code-snippet').value = q.code_snippet || '';
+    document.getElementById('edit-correct-answer').value = q.correct_answer;
+    document.getElementById('edit-points').value = q.points;
+    document.getElementById('edit-time-limit').value = q.time_limit;
+    document.getElementById('edit-explanation').value = q.explanation || '';
+
+    document.getElementById('edit-modal').classList.add('active');
+  } catch (err) {
+    alert('Failed to load question details.');
+  }
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+}
+</script>
+{% endblock %}
